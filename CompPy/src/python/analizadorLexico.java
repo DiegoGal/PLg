@@ -38,7 +38,7 @@ public class analizadorLexico {
 		enum oper {mul,sum,res,div,divent,exp,mod,and,or,mayor,mayori,menor,
 			menori,igual,distinto,asignacion,xor};
 		enum delim {Aparentesis,Cparentesis,Acorchete,Ccorchete,coma,punto,puntoycoma,dospuntos
-			,newline,indent, dedent, espacio, EOL, tab,masigual,menosigual,porigual,divigual,diventeraigual,modigual,
+			,newline,indent, dedent, espacio, EOF, tab,masigual,menosigual,porigual,divigual,diventeraigual,modigual,
 			andigual,origual,xorigual};
 		enum palres {False,True,Class,Return,None,Continue,For,Def,Nonlocal,While,
 				And,Del,Global,Not,Elif,If,Or,Else,Import,Break};
@@ -62,7 +62,7 @@ public class analizadorLexico {
 		tablaDEL.put("[", delim.Acorchete);tablaDEL.put("]", delim.Ccorchete);
 		tablaDEL.put(",", delim.coma);tablaDEL.put(".", delim.punto);
 		tablaDEL.put(";", delim.puntoycoma);tablaDEL.put(":", delim.dospuntos);
-		tablaDEL.put(" ", delim.espacio);tablaDEL.put("\n", delim.EOL);//estas también delimitan
+		tablaDEL.put(" ", delim.espacio);tablaDEL.put("\n", delim.EOF);//estas también delimitan
 		tablaDEL.put("\t", delim.tab);tablaDEL.put("+=", delim.masigual);
 		tablaDEL.put("-=", delim.menosigual);tablaDEL.put("*=", delim.porigual);
 		tablaDEL.put("/=", delim.divigual);tablaDEL.put("//=", delim.diventeraigual);
@@ -601,7 +601,7 @@ public class analizadorLexico {
 			   Token[num] = new token(tipoCodToken.DEL,delim.dedent);num++;
 		   }
 		   nivelIndent=0;
-			Token[num] = new token(tipoCodToken.FIN,"fin");num++;
+			Token[num] = new token(tipoCodToken.FIN,delim.EOF);num++;
 	}
 	//K
 	
