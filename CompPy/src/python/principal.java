@@ -7,11 +7,23 @@ import java.awt.event.ActionListener;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.WindowConstants;
+import javax.swing.JFrame;
+import javax.swing.JTextPane;
+import java.awt.BorderLayout;
+import javax.swing.JPanel;
+import javax.swing.JInternalFrame;
+import javax.swing.JButton;
+import javax.swing.BoxLayout;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 
 import python.token.tipoCodToken;
 
@@ -22,120 +34,136 @@ public class principal {
 	private gestorErrores GE;
 	private analizadorSintactico sin;
 	
-	private JTextArea tin;
-	private JTable tout;
-	private JFrame JF;
-	private JFrame out;
-	private JPanel derecho;
+	private JFrame frmCompiladorPython;
 	private int fil=0;
+
 
 public principal () {
 	
 	//inicialización de los atributos
-	lex = new analizadorLexico();
-	TS=new gestorTablaSimbolos();
-	GE=new gestorErrores();
-	sin=new analizadorSintactico(lex);
+		lex = new analizadorLexico();
+		TS=new gestorTablaSimbolos();
+		GE=new gestorErrores();
+		sin=new analizadorSintactico(lex,GE);
+		lex.setTS(TS.getBloqueActual());
+		lex.setGE(GE);
 	
-	lex.setTS(TS.getBloqueActual());
-	lex.setGE(GE);
+	frmCompiladorPython = new JFrame();
+	frmCompiladorPython.setTitle("Compilador python");
+	frmCompiladorPython.setBounds(100, 100, 1200, 500);
+	frmCompiladorPython.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	frmCompiladorPython.getContentPane().setLayout(new BoxLayout(frmCompiladorPython.getContentPane(), BoxLayout.X_AXIS));
 	
-	out= new JFrame ("Tokens");
-	out.setLayout(new BorderLayout());
-	out.setBounds(900, 100, 400, 300);
-	String[] s= {"Tipo Token","Atributo"};
-	Object[][] o= new Object [][] {
-             {null, null}, {null, null},{null, null}, {null, null},
-             {null, null}, {null, null},{null, null}, {null, null},
-             {null, null}, {null, null},{null, null}, {null, null},
-             {null, null}, {null, null},{null, null}, {null, null},
-             {null, null}, {null, null},{null, null}, {null, null},
-             {null, null}, {null, null},{null, null}, {null, null},
-             {null, null}, {null, null},{null, null}, {null, null},
-             {null, null}, {null, null},{null, null}, {null, null}
-         };
-	tout= new JTable(o,s);
-	JScrollPane scrl=new JScrollPane(tout);
-	out.getContentPane().add(scrl,BorderLayout.CENTER);
-	out.setVisible(true);
-	JF = new JFrame ("Python");
-	JF.setLayout(new BorderLayout());
-	JF.setBounds(200, 100, 700, 300);
-	// preparación de la ventana
-	derecho = new JPanel();
-	derecho.setLayout(new BoxLayout(derecho,BoxLayout.Y_AXIS));
-	tin = new JTextArea();	
-	JScrollPane scroll=new JScrollPane(tin);
-	JButton b0 = new JButton("Start");
-	b0.setEnabled(true);
-	final JButton b1 = new JButton("Next token");
-	JButton b2 = new JButton("Exit");
-	b1.setEnabled(false);
-	b2.setEnabled(true);
-	derecho.add(b0);
-    derecho.add(b1);
-    derecho.add(b2);
-    JF.getContentPane().add(scroll,BorderLayout.CENTER);
-    JF.getContentPane().add(derecho,BorderLayout.EAST);
- 
+	JInternalFrame internalFrame = new JInternalFrame("Texto a compilar");
+	frmCompiladorPython.getContentPane().add(internalFrame);
+	internalFrame.getContentPane().setLayout(new BorderLayout(0, 0));
+	
+	JScrollPane scrollPane = new JScrollPane();
+	internalFrame.getContentPane().add(scrollPane, BorderLayout.CENTER);
+	
+	//texto de entrada
+	final JTextPane tin = new JTextPane();
+	scrollPane.setViewportView(tin);
+	
+	JPanel panel = new JPanel();
+	frmCompiladorPython.getContentPane().add(panel);
+	panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+	
+	JButton Bcompilar = new JButton("Compilar");
+	panel.add(Bcompilar);
+	
+	JButton Bsalir = new JButton("Salir");
+	panel.add(Bsalir);
+	
+	//texto de salida
+	JInternalFrame internalFrame_1 = new JInternalFrame("Tokens reconocidos");
+	frmCompiladorPython.getContentPane().add(internalFrame_1);
+	
+	JScrollPane scrollPane_1 = new JScrollPane();
+	internalFrame_1.getContentPane().add(scrollPane_1, BorderLayout.CENTER);
+	
+	 final JTextPane toutToken = new JTextPane();
+	scrollPane_1.setViewportView(toutToken);
+	//Hace falta attrs para insertar el texto bien
+	final SimpleAttributeSet attrs = new SimpleAttributeSet();
+	StyleConstants.setBold(attrs, true);
+
+	
+	
+	JInternalFrame internalFrame_2 = new JInternalFrame("Errores");
+	frmCompiladorPython.getContentPane().add(internalFrame_2);
+	
+	JScrollPane scrollPane_2 = new JScrollPane();
+	internalFrame_2.getContentPane().add(scrollPane_2, BorderLayout.CENTER);
+	
+	JTextPane toutError = new JTextPane();
+	scrollPane_2.setViewportView(toutError);
+	
+	internalFrame_2.setVisible(true);
+	internalFrame_1.setVisible(true);
+	internalFrame.setVisible(true);
+	
+	
+	
+	
     
-    b0.addActionListener(new ActionListener()
-     {
-     	public void actionPerformed(ActionEvent e) //Start
-     	{
-             b1.setEnabled(true);
-             GE.vaciaErr();
-             lex.setText(tin);
-             for (int col=0;col<tout.getColumnCount();col++)
-            	 for (int fil=0;fil<tout.getRowCount();fil++)
-            		 tout.setValueAt(null, fil, col);
-             fil=0;
-        }
-     });
     
-     b1.addActionListener(new ActionListener() // next token
+     Bcompilar.addActionListener(new ActionListener() // next token
      {
      	public void actionPerformed(ActionEvent e)
      	{
-     		 token[] t=lex.scan();
-     		 int num=0;
-			while (t[num]!=null){
-			 if (t[num].getCod()==tipoCodToken.ID)
+     		lex.setText(tin.getText().toString());
+     		token[] tok=lex.scan();
+     		int num=0;
+     		while (tok[num].getCod()!=tipoCodToken.FIN){
+     		tok=lex.scan();
+     		num=0;
+			while (tok[num]!=null){
+			 if (tok[num].getCod()==tipoCodToken.ID)
 			 {
-				 tout.setValueAt(t[num].getCod(), fil, 0);
-	     		 tout.setValueAt("punt a TS", fil, 1); 
+				// Se inserta
+					try {
+						toutToken.getStyledDocument().insertString(
+						   toutToken.getStyledDocument().getLength(), tok[num].getCod().toString() + " (punt a TS)" + "\n", attrs);
+					} catch (BadLocationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 			 }
 			 else 
 			 {
-				 tout.setValueAt(t[num].getCod(), fil, 0);
-     		 	 tout.setValueAt(t[num].getAtr(), fil, 1);
+				// Se inserta
+					try {
+						toutToken.getStyledDocument().insertString(
+						   toutToken.getStyledDocument().getLength(), tok[num].getCod().toString() + " ("+tok[num].getAtr().toString()+")" + "\n", attrs);
+					} catch (BadLocationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+
 			 }
-     		 fil++;
-     		 if (t[num].getCod()==tipoCodToken.FIN){
-     			b1.setEnabled(false);
-     		 }
      		 num++;
      		 }
+     		}
      	}
      });
      
-     b2.addActionListener(new ActionListener() // exit
+     Bsalir.addActionListener(new ActionListener() // exit
      {
     	 public void actionPerformed(ActionEvent e)
       	{
-             JF.dispose();
-             out.dispose();
+             frmCompiladorPython.dispose();
       	} 
      });
      
   // Se le dice a la ventana que termine el programa cuando se la cierre
-     JF.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+     frmCompiladorPython.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
      // Se le da un tamaño automático a la ventana para que quepa todo su
      // contenido.
      //JF.pack();
      
      // Se hace visible la ventana
-     JF.setVisible(true);
+     frmCompiladorPython.setVisible(true);
 }
 	
 	

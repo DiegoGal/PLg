@@ -35,11 +35,20 @@ public class gestorErrores {
 		int tipo;
 		int fila;
 		int columna;
+		String mensaje;
 		
 		public error(int t,int f,int c){
 			tipo=t;
 			fila=f;
 			columna=c;
+			mensaje=null;
+		}
+		
+		public error(String s,int f,int c){
+			tipo=-1;
+			fila=f;
+			columna=c;
+			mensaje=s;
 		}
 		
 		//I: Error léxico: Cáracter de entrada no permitido

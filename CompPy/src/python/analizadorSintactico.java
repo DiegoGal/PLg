@@ -3,16 +3,19 @@ package python;
 import python.analizadorLexico.delim;
 import python.analizadorLexico.oper;
 import python.analizadorLexico.palres;
+import python.gestorErrores.error;
 import python.token.tipoCodToken;
 
 public class analizadorSintactico {
 	private analizadorLexico lex;
+	private gestorErrores ge;
 	private token tact; //token actual
 	private token[] tarr; //array de tokens devueltos por scan
 	private int i=0; //indice del array tarr
 	
-	analizadorSintactico(analizadorLexico lex){
+	analizadorSintactico(analizadorLexico lex, gestorErrores ge){
 		this.lex=lex;
+		this.ge=ge;
 	}
 	
 	/*<sentencia> ::= (NEWLINE |<sentencia_sim> | <sentencia_comp>)* 
@@ -54,16 +57,9 @@ public class analizadorSintactico {
 			recon(delim.newline);
 			sentencia();
 		}
-		else if(tact.getCod()==tipoCodToken.ID || tact.equals(palres.Del) ||
-				tact.equals(palres.Break) ||	tact.equals(palres.Import) ||
-				tact.equals(palres.Global) ||	tact.equals(palres.Nonlocal))
+		else 
 		{
 			sent_sim();
-		}
-		else if (tact.equals(palres.If) ||	tact.equals(palres.While) ||
-				tact.equals(palres.For) ||	tact.equals(palres.Def) ||
-				tact.equals(palres.Class)){
-			sent_comp();
 		}
 	}
 
@@ -81,15 +77,14 @@ public class analizadorSintactico {
 		}else if(tact.equals(palres.Nonlocal)){
 			nonlocal_sen();
 		}
+		recon(delim.newline);
 	}
 	
 	//<nonlocal_sen>::=  ‘nonlocal’ NAME ( ‘,’ NAME)*
 	private void nonlocal_sen() {
-		if (tact.equals(palres.Nonlocal)){
 			recon(palres.Nonlocal);
 			recon(tipoCodToken.ID);
 			nonlocal_senR();
-		}
 	}
 
 	private void nonlocal_senR() {
@@ -102,11 +97,9 @@ public class analizadorSintactico {
 
 	//<global_sen> ::= ‘global’ NAME ( ‘,’ NAME)*
 	private void global_sen() {
-		if (tact.equals(palres.Global)){
 			recon(palres.Global);
 			recon(tipoCodToken.ID);
 			global_senR();
-		}
 	}
 
 	private void global_senR() {
@@ -119,10 +112,8 @@ public class analizadorSintactico {
 
 	//<import_sen> ::= ‘import’ NAME
 	private void import_sen() {
-		if (tact.equals(palres.Import)){
 			recon(palres.Import);
 			recon(tipoCodToken.ID);
-		}
 	}
 
 	//<flow_sen> ::=  ‘break’ | ‘continue’ | ‘return’ <expr_sen>
@@ -139,11 +130,9 @@ public class analizadorSintactico {
 
 	//<del_sen> ::= ‘del’ NAME ( ‘,’ NAME)*
 	private void del_sen() {
-		if (tact.equals(palres.Del)){
 			recon(palres.Del);
 			recon(tipoCodToken.ID);
 			del_senR();
-		}
 	}
 
 	private void del_senR() {
@@ -188,6 +177,8 @@ public class analizadorSintactico {
 		}else if (tact.equals(delim.diventeraigual)){
 			recon(delim.diventeraigual);
 		}
+		else
+			errorsintactico("ERROR SINTACTICO: incluir asignación ");
 	}
 
 	//<expr> ::= <comp_expr> (<comp_op> <comp_expr>)*
@@ -333,6 +324,8 @@ public class analizadorSintactico {
 			exprR();
 			recon(delim.Ccorchete);
 		}
+		else
+			errorsintactico("ERROR SINTACTICO: se esperaba una expresion o un terminal");
 	}
 
 	private void exprR() {
@@ -351,12 +344,17 @@ public class analizadorSintactico {
 		if (tact.getAtr()==o || tact.getCod()==o){
 			tact=nextToken();
 		}else{
-			errorsintactico(o);
+			if (o.getClass() == tipoCodToken.class)
+				errorsintactico("ERROR SINTACTICO: encontrado " + tact.getCod() + " se esperaba " + o);
+			else
+			{
+				errorsintactico("ERROR SINTACTICO: encontrado " + tact.getAtr() + " se esperaba " + o);
+			}
 		}
 	}
 
-	private void errorsintactico(Object o) {
-		
+	private void errorsintactico(String s) {
+		ge.añadirError(ge.new error(s,tact.getFila(),tact.getColumna()));
 	}
 
 	private token nextToken() {

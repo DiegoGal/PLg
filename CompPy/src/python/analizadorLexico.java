@@ -95,8 +95,8 @@ public class analizadorLexico {
 	}
 	
 	// método para coger el texto a compilar
-	public void setText(JTextArea ta){
-		texto = ta.getText();
+	public void setText(String ta){
+		texto = ta;
 		i=fil=col=0;
 	}
 	
@@ -537,11 +537,11 @@ public class analizadorLexico {
 	// C
 	private void C(){
 	if (tablaPalRes.containsKey(lexema)){
-		Token[num]= new token(tipoCodToken.PAL_RES,tablaPalRes.get(lexema));num++;
+		Token[num]= new token(tipoCodToken.PAL_RES,tablaPalRes.get(lexema),fil,col);num++;
 		}
 	else {
 		if (TS.busca(lexema)==null)
-		Token[num]= new token(tipoCodToken.ID,TS.inserta(lexema, tipoCodToken.ID));num++;
+		Token[num]= new token(tipoCodToken.ID,TS.inserta(lexema, tipoCodToken.ID),fil,col);num++;
 		}
 	}
 	// C;
@@ -573,14 +573,14 @@ public class analizadorLexico {
 	
 	//F
 	private void F(){
-		Token[num] = new token(tipoCodToken.REAL, parteEntera + parteDecimal);num++;
+		Token[num] = new token(tipoCodToken.REAL, parteEntera + parteDecimal,fil,col);num++;
 		parteEntera=parteDecimal=0;
 	}
 	//F
 	
 	//G
 	private void G(){
-		Token[num] = new token(tipoCodToken.ENTERO,parteEntera);num++;
+		Token[num] = new token(tipoCodToken.ENTERO,parteEntera,fil,col);num++;
 		parteEntera=0;
 	}
 	//G
@@ -588,9 +588,9 @@ public class analizadorLexico {
 	private void H(){
 		// H
 		if (tablaOP.containsKey(lexema))
-			{Token[num]= new token(tipoCodToken.OP,tablaOP.get(lexema));num++;}
+			{Token[num]= new token(tipoCodToken.OP,tablaOP.get(lexema),fil,col);num++;}
 		if (tablaDEL.containsKey(lexema))
-			{Token[num]= new token(tipoCodToken.DEL,tablaDEL.get(lexema));num++;}
+			{Token[num]= new token(tipoCodToken.DEL,tablaDEL.get(lexema),fil,col);num++;}
 		// H
 	}
 	
@@ -598,10 +598,10 @@ public class analizadorLexico {
 	private void K(){
 		   while (indentStack.peek()!=0){
 			   indentStack.pop();
-			   Token[num] = new token(tipoCodToken.DEL,delim.dedent);num++;
+			   Token[num] = new token(tipoCodToken.DEL,delim.dedent,fil,col);num++;
 		   }
 		   nivelIndent=0;
-			Token[num] = new token(tipoCodToken.FIN,delim.EOF);num++;
+			Token[num] = new token(tipoCodToken.FIN,delim.EOF,fil,col);num++;
 	}
 	//K
 	
@@ -610,7 +610,7 @@ public class analizadorLexico {
 		fil++;
 		col=0;
 		nivelIndent=0;
-		Token[num]=new token(tipoCodToken.DEL, delim.newline);num++;
+		Token[num]=new token(tipoCodToken.DEL, delim.newline,fil,col);num++;
 	}
 	//L
 	
@@ -627,11 +627,11 @@ public class analizadorLexico {
 		  cima = indentStack.peek();
 		  if (nivelIndent > cima){
 			  indentStack.push(nivelIndent);
-			  Token[num] = new token(tipoCodToken.DEL, delim.indent);num++;
+			  Token[num] = new token(tipoCodToken.DEL, delim.indent,fil,col);num++;
 		  }
 		  if (nivelIndent < cima){
 			  indentStack.pop();
-			  Token[num] = new token(tipoCodToken.DEL, delim.dedent);num++;
+			  Token[num] = new token(tipoCodToken.DEL, delim.dedent,fil,col);num++;
 		  }
 		}
 	}
@@ -639,7 +639,7 @@ public class analizadorLexico {
 	
 	//O
 	private void O(){
-		Token[num] = new token(tipoCodToken.STRING, lexema);num++;
+		Token[num] = new token(tipoCodToken.STRING, lexema,fil,col);num++;
 		lexema = "";
 	}
 	//O
