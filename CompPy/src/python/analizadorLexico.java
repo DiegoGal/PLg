@@ -68,6 +68,7 @@ public class analizadorLexico {
 		tablaDEL.put("/=", delim.divigual);tablaDEL.put("//=", delim.diventeraigual);
 		tablaDEL.put("%=", delim.modigual);tablaDEL.put("&=", delim.andigual);
 		tablaDEL.put("|=", delim.andigual);tablaDEL.put("^=", delim.xorigual);
+		tablaDEL.put("\r",delim.newline);
 		//carga la tabla de palabras reservadas
 		tablaPalRes = new Hashtable<String,palres>();
 		tablaPalRes.put("False", palres.False);tablaPalRes.put("True", palres.True);
@@ -113,6 +114,10 @@ public class analizadorLexico {
 		i --;col--;
 	}
 	
+	public int getnumTokens(){
+		return num;
+	}
+	
 	//metodo de interfaz con el analizador sintáctico
 	public token[] scan(){
 			estado actual=estado.q0;
@@ -127,6 +132,9 @@ public class analizadorLexico {
 						fil=col=0;
 						actual=estado.fin; // todos los estados finales
 						break;}
+					if (preanalisis== '\r'){//ignorar retorno de carro
+						A();
+						}
 					if (preanalisis== ' '){
 						A();
 						break;}

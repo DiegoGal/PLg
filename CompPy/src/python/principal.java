@@ -25,6 +25,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 
+import python.gestorErrores.error;
 import python.token.tipoCodToken;
 
 
@@ -35,7 +36,6 @@ public class principal {
 	private analizadorSintactico sin;
 	
 	private JFrame frmCompiladorPython;
-	private int fil=0;
 
 
 public principal () {
@@ -96,7 +96,7 @@ public principal () {
 	JScrollPane scrollPane_2 = new JScrollPane();
 	internalFrame_2.getContentPane().add(scrollPane_2, BorderLayout.CENTER);
 	
-	JTextPane toutError = new JTextPane();
+	final JTextPane toutError = new JTextPane();
 	scrollPane_2.setViewportView(toutError);
 	
 	internalFrame_2.setVisible(true);
@@ -108,42 +108,66 @@ public principal () {
 	
     
     
-     Bcompilar.addActionListener(new ActionListener() // next token
+     Bcompilar.addActionListener(new ActionListener() // compilar
      {
      	public void actionPerformed(ActionEvent e)
      	{
-     		lex.setText(tin.getText().toString());
-     		token[] tok=lex.scan();
+     		GE.vaciaErr(); //Vaciamos los errores que había
+     		toutToken.setText(""); //se vacia el texto
+     		lex.setText(tin.getText().toString()); //cojemos el texto a compilar
+     		token[] tok=null;
+     		boolean fin=false;
      		int num=0;
-     		while (tok[num].getCod()!=tipoCodToken.FIN){
-     		tok=lex.scan();
-     		num=0;
-			while (tok[num]!=null){
-			 if (tok[num].getCod()==tipoCodToken.ID)
-			 {
-				// Se inserta
-					try {
-						toutToken.getStyledDocument().insertString(
-						   toutToken.getStyledDocument().getLength(), tok[num].getCod().toString() + " (punt a TS)" + "\n", attrs);
-					} catch (BadLocationException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-			 }
-			 else 
-			 {
-				// Se inserta
-					try {
-						toutToken.getStyledDocument().insertString(
-						   toutToken.getStyledDocument().getLength(), tok[num].getCod().toString() + " ("+tok[num].getAtr().toString()+")" + "\n", attrs);
-					} catch (BadLocationException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
+     		while (!fin){ // mientras no encontremos el token fin escaneamos la cadena de entrada 
+     			tok=lex.scan();
+     			num=0;
+     			int ultToken=lex.getnumTokens()-1;
+     			if (ultToken<0)
+     				ultToken=0;
+     			if ((tok[ultToken]!=null) && (tok[ultToken].getCod()==tipoCodToken.FIN)) // si encontramos el token fin en el último de los tokens activamos el flag
+     				fin=true;
+     			while (tok[num]!=null){ //mientras haya tokens en el array
+     				if (tok[num].getCod()==tipoCodToken.ID)
+     				{
+     					// 	Se inserta en el texto de salida toutToken el tipo y atributo del token
+     					try {
+     						toutToken.getStyledDocument().insertString(
+     								toutToken.getStyledDocument().getLength(), tok[num].getCod().toString() + " (punt a TS)" + "\n", attrs);
+     					} catch (BadLocationException e1) {
+						// 	TODO Auto-generated catch block
+     						e1.printStackTrace();
+     					}
+     				}
+     				else 
+     				{
+				// 	Se inserta
+     					try {
+     						toutToken.getStyledDocument().insertString(
+     								toutToken.getStyledDocument().getLength(), tok[num].getAtr().toString() + " ("+tok[num].getCod().toString()+")" + "\n", attrs);
+     					} catch (BadLocationException e1) {
+						// 	TODO Auto-generated catch block
+     						e1.printStackTrace();
+     					}
+     					
+     				}
+     				num++;
+     			}
+     		}
+     		
+     		//escribimos los errores que ha habido en toutError
+     		error[] err=GE.getErrores();
+     		toutError.setText("");
+     		int i=0;
+     		while (err[i]!=null){
+     			try {
+					toutError.getStyledDocument().insertString(
+								toutError.getStyledDocument().getLength(), "("+err[i].getFila()+","+err[i].getColumna()+")" + err[i].getMensaje() + "\n", attrs);
+				} catch (BadLocationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+     			i++;
 
-			 }
-     		 num++;
-     		 }
      		}
      	}
      });

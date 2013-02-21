@@ -24,9 +24,17 @@ public class gestorErrores {
 		}
 	}
 	
+	public error[] getErrores(){
+		return errores;
+	}
+	
+	
 	public void vaciaErr(){
 		if (i>0)//si hay elementos
+		{
 			errores= new error[defErr];
+			i=0;
+		}
 	}
 	
 	
@@ -45,10 +53,38 @@ public class gestorErrores {
 		}
 		
 		public error(String s,int f,int c){
-			tipo=-1;
+			tipo=0;
 			fila=f;
 			columna=c;
 			mensaje=s;
+		}
+		
+		public int getFila(){
+			return fila;
+		}
+		
+		public int getColumna(){
+			return columna;
+		}
+		
+		public String getMensaje(){
+			if (tipo!=0){
+				switch (tipo){
+					case 1:
+						return "Error léxico: Carácter de entrada no permitido";
+					case 2:
+						return "Error léxico: Constante numérica mal formada";
+					case 3:
+						return "Error léxico: Se esperaba el carácter '=' ";
+					case 4:
+						return "Error léxico: Carácter inesperado en este contexto";
+					default:
+						return "";
+				}
+			}
+			else{
+				return mensaje;	
+			}
 		}
 		
 		//I: Error léxico: Cáracter de entrada no permitido
