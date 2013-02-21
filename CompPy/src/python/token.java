@@ -32,7 +32,7 @@ public class token {
 				return true;
 			if(o==null)
 				return false;
-			if (atributo.getClass()!=o.getClass() && atributo!=o){
+			if (atributo.getClass()!=o.getClass() || atributo!=o){
 				return false;
 			}
 			return true;

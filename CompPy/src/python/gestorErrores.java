@@ -4,7 +4,7 @@ public class gestorErrores {
 
 	private error[] errores;
 	int i=0; //iterador
-	static final int defErr=10; //determina el tamaño del array de errores
+	static int defErr=10; //determina el tamaño del array de errores
 	
 	public gestorErrores(){
 		errores= new error[defErr];
@@ -13,7 +13,8 @@ public class gestorErrores {
 	public void añadirError(error r){
 		if (i>=defErr){
 			//duplica el tamaño del array si no caben los errores
-			error[] aux= new error[defErr*2];
+			defErr=defErr*2;
+			error[] aux= new error[defErr];
 			for (int j=0;j<i;j++)
 				aux[j]=errores[j];
 			errores=aux;

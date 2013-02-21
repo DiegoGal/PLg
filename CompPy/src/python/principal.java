@@ -154,6 +154,9 @@ public principal () {
      			}
      		}
      		
+     		sin.parser();
+     		
+     		
      		//escribimos los errores que ha habido en toutError
      		error[] err=GE.getErrores();
      		toutError.setText("");

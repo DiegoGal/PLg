@@ -10,8 +10,7 @@ public class analizadorSintactico {
 	private analizadorLexico lex;
 	private gestorErrores ge;
 	private token tact; //token actual
-	private token[] tarr; //array de tokens devueltos por scan
-	private int i=0; //indice del array tarr
+	private int indice=0;
 	
 	analizadorSintactico(analizadorLexico lex, gestorErrores ge){
 		this.lex=lex;
@@ -341,6 +340,7 @@ public class analizadorSintactico {
 	}
 
 	void recon(Object o){
+		if (tact!=null){
 		if (tact.getAtr()==o || tact.getCod()==o){
 			tact=nextToken();
 		}else{
@@ -350,6 +350,8 @@ public class analizadorSintactico {
 			{
 				errorsintactico("ERROR SINTACTICO: encontrado " + tact.getAtr() + " se esperaba " + o);
 			}
+			tact=nextToken();
+		}
 		}
 	}
 
@@ -358,15 +360,8 @@ public class analizadorSintactico {
 	}
 
 	private token nextToken() {
-		if (tarr[i]!=null){
-			i++;
-			return tarr[i];
-		}
-		else {
-			i=0;
-			tarr=lex.scan();
-			return tarr[i];
-		}
+		return lex.getNextToken();
+		
 	}
 	
 }
