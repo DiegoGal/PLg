@@ -1,0 +1,9 @@
+def a():
+	b=0
+	while (True):
+		j+=1
+
+
+//Ejemplo de código para comprobar errores léxicos
+defa():ç
+	True=5.-

@@ -12,11 +12,14 @@ import python.gestorErrores.error;
 public class analizadorLexico {
 	
 		private String texto;
+		private int maxtokens=10;
+		private int indice=0;
+		private int pikachu=0;
+		private token[] arrayTokens= new token[maxtokens];
 		private static Hashtable<String,palres> tablaPalRes;
 		private static Hashtable<String,oper> tablaOP;
 		private static Hashtable<String,delim> tablaDEL;
 		
-		private static int maxtokens=10;
 		private int fil=0;
 		private int col=0;
 		private int i=0;
@@ -38,7 +41,7 @@ public class analizadorLexico {
 		enum oper {mul,sum,res,div,divent,exp,mod,and,or,mayor,mayori,menor,
 			menori,igual,distinto,asignacion,xor};
 		enum delim {Aparentesis,Cparentesis,Acorchete,Ccorchete,coma,punto,puntoycoma,dospuntos
-			,newline,indent, dedent, espacio, EOL, tab,masigual,menosigual,porigual,divigual,diventeraigual,modigual,
+			,newline,indent, dedent, espacio, EOF, tab,masigual,menosigual,porigual,divigual,diventeraigual,modigual,
 			andigual,origual,xorigual};
 		enum palres {False,True,Class,Return,None,Continue,For,Def,Nonlocal,While,
 				And,Del,Global,Not,Elif,If,Or,Else,Import,Break};
@@ -62,12 +65,13 @@ public class analizadorLexico {
 		tablaDEL.put("[", delim.Acorchete);tablaDEL.put("]", delim.Ccorchete);
 		tablaDEL.put(",", delim.coma);tablaDEL.put(".", delim.punto);
 		tablaDEL.put(";", delim.puntoycoma);tablaDEL.put(":", delim.dospuntos);
-		tablaDEL.put(" ", delim.espacio);tablaDEL.put("\n", delim.EOL);//estas también delimitan
+		tablaDEL.put(" ", delim.espacio);tablaDEL.put("\n", delim.EOF);//estas también delimitan
 		tablaDEL.put("\t", delim.tab);tablaDEL.put("+=", delim.masigual);
 		tablaDEL.put("-=", delim.menosigual);tablaDEL.put("*=", delim.porigual);
 		tablaDEL.put("/=", delim.divigual);tablaDEL.put("//=", delim.diventeraigual);
 		tablaDEL.put("%=", delim.modigual);tablaDEL.put("&=", delim.andigual);
 		tablaDEL.put("|=", delim.andigual);tablaDEL.put("^=", delim.xorigual);
+		tablaDEL.put("\r",delim.newline);
 		//carga la tabla de palabras reservadas
 		tablaPalRes = new Hashtable<String,palres>();
 		tablaPalRes.put("False", palres.False);tablaPalRes.put("True", palres.True);
@@ -78,7 +82,7 @@ public class analizadorLexico {
 		tablaPalRes.put("and", palres.And);tablaPalRes.put("del", palres.Del);
 		tablaPalRes.put("global", palres.Global);tablaPalRes.put("not", palres.Not);
 		tablaPalRes.put("elif", palres.Elif);tablaPalRes.put("if", palres.If);
-		tablaPalRes.put("or", palres.Or);tablaPalRes.put("del", palres.Else);
+		tablaPalRes.put("or", palres.Or);tablaPalRes.put("else", palres.Else);
 		tablaPalRes.put("import", palres.Import);tablaPalRes.put("break", palres.Break);
 		
 	}
@@ -95,9 +99,10 @@ public class analizadorLexico {
 	}
 	
 	// método para coger el texto a compilar
-	public void setText(JTextArea ta){
-		texto = ta.getText();
+	public void setText(String ta){
+		texto = ta;
 		i=fil=col=0;
+		indice=0; // Para iniciar el indice del arrayTokens
 	}
 	
 	private char getch(){
@@ -111,6 +116,33 @@ public class analizadorLexico {
 	
 	private void ungetch(){
 		i --;col--;
+	}
+	
+	public int getnumTokens(){
+		return num;
+	}
+	
+	private void añadirArray(token tok) {
+		if (indice<maxtokens){
+			arrayTokens[indice]=tok;
+			indice++;
+		}else{
+			//duplica el tamaño del array si no caben los errores
+			maxtokens=maxtokens*2;
+			token[] aux= new token[maxtokens];
+			for (int j=0;j<indice;j++)
+				aux[j]=arrayTokens[j];
+			arrayTokens=aux;
+		}
+	}
+	
+	public token getNextToken(){
+		if (pikachu>=indice)
+			return arrayTokens[pikachu-1];
+		else{
+			pikachu++;
+			return arrayTokens[pikachu-1];
+		}
 	}
 	
 	//metodo de interfaz con el analizador sintáctico
@@ -127,6 +159,9 @@ public class analizadorLexico {
 						fil=col=0;
 						actual=estado.fin; // todos los estados finales
 						break;}
+					if (preanalisis== '\r'){//ignorar retorno de carro
+						A();
+						}
 					if (preanalisis== ' '){
 						A();
 						break;}
@@ -537,11 +572,15 @@ public class analizadorLexico {
 	// C
 	private void C(){
 	if (tablaPalRes.containsKey(lexema)){
-		Token[num]= new token(tipoCodToken.PAL_RES,tablaPalRes.get(lexema));num++;
+		Token[num]= new token(tipoCodToken.PAL_RES,tablaPalRes.get(lexema),fil,col);
+		añadirArray(Token[num]);
+		num++;
 		}
 	else {
 		if (TS.busca(lexema)==null)
-		Token[num]= new token(tipoCodToken.ID,TS.inserta(lexema, tipoCodToken.ID));num++;
+			Token[num]= new token(tipoCodToken.ID,TS.inserta(lexema, tipoCodToken.ID),fil,col);
+			añadirArray(Token[num]);
+			num++;
 		}
 	}
 	// C;
@@ -573,14 +612,18 @@ public class analizadorLexico {
 	
 	//F
 	private void F(){
-		Token[num] = new token(tipoCodToken.REAL, parteEntera + parteDecimal);num++;
+		Token[num] = new token(tipoCodToken.REAL, parteEntera + parteDecimal,fil,col);
+		añadirArray(Token[num]);
+		num++;
 		parteEntera=parteDecimal=0;
 	}
 	//F
 	
 	//G
 	private void G(){
-		Token[num] = new token(tipoCodToken.ENTERO,parteEntera);num++;
+		Token[num] = new token(tipoCodToken.ENTERO,parteEntera,fil,col);
+		añadirArray(Token[num]);
+		num++;
 		parteEntera=0;
 	}
 	//G
@@ -588,9 +631,9 @@ public class analizadorLexico {
 	private void H(){
 		// H
 		if (tablaOP.containsKey(lexema))
-			{Token[num]= new token(tipoCodToken.OP,tablaOP.get(lexema));num++;}
+			{Token[num]= new token(tipoCodToken.OP,tablaOP.get(lexema),fil,col);añadirArray(Token[num]);num++;}
 		if (tablaDEL.containsKey(lexema))
-			{Token[num]= new token(tipoCodToken.DEL,tablaDEL.get(lexema));num++;}
+			{Token[num]= new token(tipoCodToken.DEL,tablaDEL.get(lexema),fil,col);añadirArray(Token[num]);num++;}
 		// H
 	}
 	
@@ -598,10 +641,10 @@ public class analizadorLexico {
 	private void K(){
 		   while (indentStack.peek()!=0){
 			   indentStack.pop();
-			   Token[num] = new token(tipoCodToken.DEL,delim.dedent);num++;
+			   Token[num] = new token(tipoCodToken.DEL,delim.dedent,fil,col);añadirArray(Token[num]);num++;
 		   }
 		   nivelIndent=0;
-			Token[num] = new token(tipoCodToken.FIN,"fin");num++;
+		   Token[num] = new token(tipoCodToken.FIN,delim.EOF,fil,col);añadirArray(Token[num]);num++;
 	}
 	//K
 	
@@ -610,7 +653,7 @@ public class analizadorLexico {
 		fil++;
 		col=0;
 		nivelIndent=0;
-		Token[num]=new token(tipoCodToken.DEL, delim.newline);num++;
+		Token[num]=new token(tipoCodToken.DEL, delim.newline,fil,col);añadirArray(Token[num]);num++;
 	}
 	//L
 	
@@ -627,11 +670,13 @@ public class analizadorLexico {
 		  cima = indentStack.peek();
 		  if (nivelIndent > cima){
 			  indentStack.push(nivelIndent);
-			  Token[num] = new token(tipoCodToken.DEL, delim.indent);num++;
+			  Token[num] = new token(tipoCodToken.DEL, delim.indent,fil,col);añadirArray(Token[num]);num++;
 		  }
 		  if (nivelIndent < cima){
 			  indentStack.pop();
-			  Token[num] = new token(tipoCodToken.DEL, delim.dedent);num++;
+			  Token[num] = new token(tipoCodToken.DEL, delim.dedent,fil,col);
+			  añadirArray(Token[num]);
+			  num++;
 		  }
 		}
 	}
@@ -639,11 +684,13 @@ public class analizadorLexico {
 	
 	//O
 	private void O(){
-		Token[num] = new token(tipoCodToken.STRING, lexema);num++;
+		Token[num] = new token(tipoCodToken.STRING, lexema,fil,col);
+		añadirArray(Token[num]);
+		num++;
 		lexema = "";
 	}
 	//O
-	
+
 	//P
 	private void P(){
 		ignoraEOL =true;
